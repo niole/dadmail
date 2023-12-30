@@ -3,13 +3,6 @@ import { useState, useContext } from 'react';
 import { Button, TextInput, FlatList, StyleSheet, View, Text } from 'react-native';
 import { GlobalContext, State, EmailMessage } from '../state';
 
-function sortByDate(a: EmailMessage, b: EmailMessage): number {
-    const ams = a.ts.getMilliseconds();
-    const bms = b.ts.getMilliseconds();
-
-    return (ams - bms) * -1;
-}
-
 export default function Page() {
     const { threadId } = useLocalSearchParams();
     const { sendQueue, actions, user, threads } = useContext(GlobalContext);
@@ -58,6 +51,13 @@ export default function Page() {
             </View>
         </View>
     );
+}
+
+function sortByDate(a: EmailMessage, b: EmailMessage): number {
+    const ams = a.ts.getMilliseconds();
+    const bms = b.ts.getMilliseconds();
+
+    return (ams - bms) * -1;
 }
 
 const sharedMessageStyle = {

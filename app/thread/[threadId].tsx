@@ -36,10 +36,12 @@ export default function Page() {
                 <Button
                     disabled={!newMessage}
                     onPress={() => {
+                        const date = new Date();
                         const newEmail = {
                             threadId,
+                            id: `unsent-${threadId}-${date}`,
                             from: user.email,
-                            ts: new Date(),
+                            ts: date,
                             content: newMessage,
                             sendState: { status: 'sending' }
                         };

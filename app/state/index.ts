@@ -68,7 +68,13 @@ function initState() {
     actions: {
       addToSendQueue: (s: EmailMessage) => {
         state.sendQueue.push(s);
+        state.actions.sendQueuedMessage(s.id);
       },
+
+      sendQueuedMessage: (id: string) => {
+        const msg = state.sendQueue.find(e => e.id === id) ?? throw new Error(`Email with id ${id} is not in the send queue.`);
+        console.info('Sending queued message. id: ', msg.id, ', date: ', msg.ts);
+      }
     }
   };
 

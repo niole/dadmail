@@ -1,10 +1,19 @@
 import { createContext } from 'react';
 
+export type SendStatus = 'sent' | 'sending' | 'failed';
+
+export type SendState = {
+  status: SendStatus,
+  msg?: string,
+};
+
 export type EmailMessage = {
+  threadId: string,
   id: string,
   from: string,
   ts: Date,
-  content: string
+  content: string,
+  sendState: SendState,
 }
 
 export type EmailThread = {
@@ -21,6 +30,8 @@ export type User = {
 export type State = {
   user: User,
   threads: EmailThread[],
+  sendQueue: EmailMessage[],
+  actions: any,
 };
 
 const defaultThreads = [
@@ -29,10 +40,10 @@ const defaultThreads = [
   recipients: ['cat@gmail.com', 'dog@gmail.com'],
   subject: 'Really long chat',
   messages: [
-    { id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi'},
+    { threadId: 'fakeid1', id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi', sendState: { status: 'sent' }},
     ...Array(20).fill(null).map((x, i) => (
       {
-        id: (i+10).toString(), from: 'cat@gmail.com', ts: new Date(), content: 'hi'
+        threadId: 'fakeid1', id: (i+10).toString(), sendState: { status: 'sent' }, from: 'cat@gmail.com', ts: new Date(), content: 'hi'
       }
     ))
   ]
@@ -42,15 +53,26 @@ const defaultThreads = [
   recipients: ['cat@gmail.com', 'dog@gmail.com'],
   subject: 'short chat',
   messages: [
-    { id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi'},
-    { id: '2', from: 'dog@gmail.com', ts: new Date(), content: 'hi'},
+    { threadId: 'fakeid2', sendState: {status: 'sent'}, id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi'},
   ]
 },
 ];
 
-export const GlobalContext = createContext<State>({
-  user: {
-    email: 'cat@gmail.com',
-  },
-  threads: defaultThreads
-});
+function initState() {
+  const state = {
+    user: {
+      email: 'cat@gmail.com',
+    },
+    threads: defaultThreads,
+    sendQueue: [] as EmailMessage[],
+    actions: {
+      addToSendQueue: (s: EmailMessage) => {
+        state.sendQueue.push(s);
+      },
+    }
+  };
+
+  return createContext<State>(state);
+}
+
+export const GlobalContext = initState();

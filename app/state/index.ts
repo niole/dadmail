@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export type SendStatus = 'sent' | 'sending' | 'failed';
 
@@ -25,10 +26,11 @@ export type EmailThread = {
 
 export type User = {
   email: string,
+  googleId: string,
 };
 
 export type State = {
-  user: User,
+  user?: User,
   threads: EmailThread[],
   sendQueue: EmailMessage[],
   actions: any,
@@ -59,13 +61,42 @@ const defaultThreads = [
 ];
 
 function initState() {
-  const state = {
-    user: {
-      email: 'cat@gmail.com',
-    },
+  const state: State = {
     threads: defaultThreads,
     sendQueue: [] as EmailMessage[],
     actions: {
+      gapi: {
+        sendReq: (path: string, moreHeaders: any = {}): Promise<any> => {
+          return GoogleSignin.getTokens()
+          .then(({ accessToken }) => {
+              return fetch(`https://gmail.googleapis.com${path}`, {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  ...moreHeaders
+                }
+              }).then(x => x.json())
+              .catch(e => {
+                if (e.statusCode === 401) {
+                  if (accessToken) {
+                    GoogleSignin.clearCachedAccessToken(accessToken);
+                  }
+
+                  // trigger UI login flow
+                  state.actions.setUser(undefined);
+                }
+              });
+          });
+        },
+
+        get: (path: string): Promise<any> => {
+          return state.actions.gapi.sendReq(path);
+        }
+      },
+
+      setUser: (user?: User) => {
+        state.user = user;
+      },
+
       addToSendQueue: (s: EmailMessage) => {
         state.sendQueue.push(s);
         state.actions.sendQueuedMessage(s.id);

@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GmailThreadV1 } from '../gapiClient/types';
 
 export type SendStatus = 'sent' | 'sending' | 'failed';
 
@@ -31,38 +32,15 @@ export type User = {
 
 export type State = {
   user?: User,
-  threads: EmailThread[],
+  fetchThreadsState?: 'fetching' | 'fetched' | 'failed',
+  threads: GmailThreadV1[],
   sendQueue: EmailMessage[],
   actions: any,
 };
 
-const defaultThreads = [
-  {
-  id: 'fakeid1',
-  recipients: ['cat@gmail.com', 'dog@gmail.com'],
-  subject: 'Really long chat',
-  messages: [
-    { threadId: 'fakeid1', id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi', sendState: { status: 'sent' }},
-    ...Array(20).fill(null).map((x, i) => (
-      {
-        threadId: 'fakeid1', id: (i+10).toString(), sendState: { status: 'sent' }, from: 'cat@gmail.com', ts: new Date(), content: 'hi'
-      }
-    ))
-  ]
-},
-  {
-  id: 'fakeid2',
-  recipients: ['cat@gmail.com', 'dog@gmail.com'],
-  subject: 'short chat',
-  messages: [
-    { threadId: 'fakeid2', sendState: {status: 'sent'}, id: '1', from: 'dog@gmail.com', ts: new Date(), content: 'hi'},
-  ]
-},
-];
-
 function initState() {
   const state: State = {
-    threads: defaultThreads,
+    threads: [],
     sendQueue: [] as EmailMessage[],
     actions: {
       gapi: {
